@@ -38,7 +38,7 @@ const enriched = computed(() =>
   list.value.map((it) => {
     const e = { ...it, tier: it.prize_tier || '', tierNum: '', hitRed: [], hitBlue: [], matchText: '', playLabel: PLAY_LABEL[it.play_type] || '单式' }
     if (it.draw_red && it.draw_blue) {
-      const m = matchTicket(it.type, it.red_balls, it.blue_balls, it.banker_red, it.banker_blue, it.draw_red, it.draw_blue)
+      const m = matchTicket(it.type, it.red_balls, it.blue_balls, it.banker_red, it.banker_blue, it.draw_red, it.draw_blue, it.pool_amount || 0)
       e.tier = it.prize_tier || m.tier
       e.tierNum = tierNum(e.tier)
       e.matchText = `命中 ${m.bestMr}+${m.bestMb}`

@@ -97,9 +97,10 @@ func handleGetShare(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&l.ID, &l.Type, &l.Issue, &l.RedBalls, &l.BlueBalls, &l.PlayType, &l.Multiple, &l.BankerRed, &l.BankerBlue, &l.Bets, &l.Status, &l.PrizeTier); err != nil {
 			continue
 		}
-		// 查对应开奖结果
+		// 查对应开奖结果（含奖池金额）
 		var dr, db string
-		DB.QueryRow("SELECT red_balls, blue_balls FROM draw_results WHERE type=? AND (DATE(draw_date)=? OR issue=?)", l.Type, l.Issue, l.Issue).Scan(&dr, &db)
+		var poolAmount int64
+		DB.QueryRow("SELECT red_balls, blue_balls, pool_amount FROM draw_results WHERE type=? AND (DATE(draw_date)=? OR issue=?)", l.Type, l.Issue, l.Issue).Scan(&dr, &db, &poolAmount)
 		entry := map[string]interface{}{
 			"type":        l.Type,
 			"issue":       l.Issue,
@@ -114,6 +115,7 @@ func handleGetShare(w http.ResponseWriter, r *http.Request) {
 			"prize_tier":  l.PrizeTier,
 			"draw_red":    dr,
 			"draw_blue":   db,
+			"pool_amount": poolAmount,
 		}
 		list = append(list, entry)
 	}

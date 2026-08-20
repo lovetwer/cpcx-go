@@ -399,6 +399,7 @@ label span { font-weight: 500; }
 .draw-list { display: flex; flex-direction: column; gap: 12px; }
 .draw-row { padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .draw-issue { display: flex; align-items: center; gap: 10px; }
+.pool-badge { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--red); background: rgba(226,59,78,0.08); padding: 3px 10px; border-radius: 8px; white-space: nowrap; }
 .draw-no { font-weight: 600; }
 .draw-date { font-size: 12px; color: var(--muted); }
 

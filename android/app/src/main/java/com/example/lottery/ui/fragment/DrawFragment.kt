@@ -14,6 +14,7 @@ import com.example.lottery.databinding.FragmentDrawBinding
 import com.example.lottery.databinding.DrawRowBinding
 import com.example.lottery.ui.widget.BallsView
 import com.example.lottery.ui.widget.ToastUtil
+import com.example.lottery.util.Match
 import kotlinx.coroutines.launch
 
 class DrawFragment : Fragment() {
@@ -94,6 +95,14 @@ class DrawFragment : Fragment() {
         b.date.text = d.draw_date.ifEmpty { "—" }
         b.balls.setSize(24)
         b.balls.setBalls(d.type, d.red_balls, d.blue_balls)
+        // 奖池金额徽标
+        val poolDesc = Match.poolAmountDesc(d.pool_amount)
+        if (poolDesc.isNotEmpty()) {
+            b.poolBadge.text = "奖池 $poolDesc"
+            b.poolBadge.visibility = View.VISIBLE
+        } else {
+            b.poolBadge.visibility = View.GONE
+        }
         return b.root
     }
 

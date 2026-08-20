@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { apiListDraw } from '../api'
 import Balls from '../components/Balls.vue'
 import Spinner from '../components/Spinner.vue'
+import { poolAmountDesc } from '../utils/match'
 
 const type = ref('ssq')
 const list = ref([])
@@ -58,6 +59,7 @@ onMounted(load)
             <div class="draw-no">第 {{ d.issue }} 期</div>
             <div class="draw-date">{{ d.draw_date || '—' }}</div>
           </div>
+          <span v-if="d.pool_amount > 0" class="pool-badge">奖池 {{ poolAmountDesc(d.pool_amount) }}</span>
         </div>
         <Balls :type="d.type" :red="d.red_balls" :blue="d.blue_balls" />
       </article>
