@@ -1,0 +1,20 @@
+# 环境变量（含数据库密码 / JWT 密钥，禁止入库）
+.env
+*.env
+
+# 编译产物
+*.exe
+lottery-manager
+app
+
+# Go 构建缓存
+*.test
+*.out
+
+# 前端静态打包（前端在 Vercel 单独部署，不再 embed 进后端）
+static/
+
+# 日志
+*.log
+backend_runtime.log
+ocr_debug.log

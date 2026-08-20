@@ -1,0 +1,55 @@
+# Render 部署配置 — 大奖来了后端（纯 API，前后端分离）
+# 前端在 Vercel 单独部署，本仓库只含 Go 后端，根目录即服务根。
+# 使用 Render 原生 Go 构建（无需 Dockerfile）
+services:
+  - type: web
+    name: lottery-api
+    runtime: go
+    region: singapore
+    plan: free
+    buildCommand: go build -o app .
+    startCommand: ./app
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3311"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_KEY
+        sync: false
+      - key: MAIL_HOST
+        value: smtp.resend.com
+      - key: MAIL_PORT
+        value: "2465"
+      - key: MAIL_USERNAME
+        value: resend
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDR
+        sync: false
+      - key: NOTIFY_EMAILS
+        value: ""
+      - key: PUSH_URL
+        sync: false
+      - key: PUSH_TOKEN
+        sync: false
+      - key: PULL_INTERVAL_MIN
+        value: "30"
+      - key: CHECK_INTERVAL_MIN
+        value: "15"
+      - key: AGNES_API_KEY
+        sync: false
+      - key: AGNES_API_URL
+        value: https://apihub.agnes-ai.com/v1/chat/completions
+      - key: AGNES_MODEL
+        value: agnes-2.5-flash

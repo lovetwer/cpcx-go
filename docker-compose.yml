@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lottery-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: lottery
+    ports:
+      - "3306:3306"
+    volumes:
+      - lottery_mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # 可选：直接把后端也跑在容器里（需先建好 backend/.env）
+  # app:
+  #   build: ./backend
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     DB_HOST: mysql
+  #     DB_PORT: "3306"
+  #     DB_USER: root
+  #     DB_PASSWORD: rootpass
+  #     DB_NAME: lottery
+  #   depends_on:
+  #     - mysql
+
+volumes:
+  lottery_mysql_data:

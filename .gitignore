@@ -1,0 +1,40 @@
+# ===== 环境变量（含密码 / 密钥，禁止入库） =====
+.env
+*.env
+
+# ===== Go 编译产物 =====
+*.exe
+lottery-manager
+app
+
+# ===== Go 测试缓存 =====
+*.test
+*.out
+
+# ===== 前端 =====
+web/node_modules/
+web/dist/
+web/dist-ssr/
+web/*.local
+
+# ===== Android 构建产物 =====
+android/.gradle/
+android/app/build/
+android/app/release/
+android/local.properties
+android/app/keystore.properties
+android/app/release-key.jks
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# ===== 日志 =====
+*.log
+*.err
+
+# ===== OS / IDE =====
+.DS_Store
+*.iml
+.idea/
+.vscode/
