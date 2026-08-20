@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { apiMe, apiUpdateMe, apiListLottery } from '../api'
+import { apiMe, apiUpdateMe, apiListLottery, apiDeleteMe } from '../api'
 import { auth, clearAuth, setAuth } from '../store/auth'
 import { toast } from '../store/toast'
 import Spinner from '../components/Spinner.vue'
@@ -14,6 +14,27 @@ const saving = ref(false)
 const stats = ref({ total: 0, wins: 0, pending: 0 })
 const loadingStats = ref(false)
 const showDisclaimer = ref(false)
+const showDeleteConfirm = ref(false)
+const deleting = ref(false)
+
+async function deleteAccount() {
+  deleting.value = true
+  try {
+    const r = await apiDeleteMe()
+    if (r.ok) {
+      clearAuth()
+      toast('账号已注销', 'info')
+      router.push('/login')
+    } else {
+      toast(r.data?.msg || '注销失败', 'error')
+    }
+  } catch (e) {
+    toast(e?.message || '注销失败', 'error')
+  } finally {
+    deleting.value = false
+    showDeleteConfirm.value = false
+  }
+}
 
 // 修改密码
 const pwdPanel = ref(false)
@@ -222,6 +243,23 @@ onMounted(() => {
 
     <button class="btn btn-block btn-danger logout-btn" @click="logout">退出登录</button>
 
+    <button class="btn btn-block btn-text delete-account-btn" @click="showDeleteConfirm = true">注销账号</button>
+
+    <!-- 注销账号确认弹窗 -->
+    <Modal :show="showDeleteConfirm" title="注销账号" @close="showDeleteConfirm = false">
+      <div class="delete-warning">
+        <p class="delete-warning-title">⚠️ 危险操作</p>
+        <p>注销后，您的账号、所有彩票记录和分享将<strong>永久删除</strong>，且<strong>不可恢复</strong>。</p>
+        <p>确定要注销账号吗？</p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" @click="showDeleteConfirm = false" :disabled="deleting">取消</button>
+        <button class="btn btn-danger" @click="deleteAccount" :disabled="deleting">
+          <Spinner v-if="deleting" light /> 确认注销
+        </button>
+      </div>
+    </Modal>
+
     <!-- 免责声明 -->
     <div class="disclaimer-footer">
       <p>本应用仅供学习交流使用，不涉及博彩或投注。开奖数据以官方公告为准，请遵守国家法律法规。</p>
@@ -317,5 +355,30 @@ onMounted(() => {
 .disclaimer-full strong {
   color: var(--text);
   font-size: 14px;
+}
+.delete-account-btn {
+  margin-top: 8px;
+  color: #e53e3e;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.delete-account-btn:hover {
+  opacity: 1;
+}
+.delete-warning {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.delete-warning p {
+  margin: 0 0 10px;
+}
+.delete-warning-title {
+  color: #e53e3e;
+  font-weight: 700;
+  font-size: 15px;
+}
+.delete-warning strong {
+  color: #e53e3e;
 }
 </style>

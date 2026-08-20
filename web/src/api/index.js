@@ -32,6 +32,7 @@ export const apiDeviceLogin = (deviceId, email, deviceModel) =>
 
 export const apiMe = () => get('/api/me')
 export const apiUpdateMe = (payload) => put('/api/me', payload)
+export const apiDeleteMe = () => del('/api/me')
 
 // ---------- 彩票管理 ----------
 export const apiListLottery = (params = {}) => {

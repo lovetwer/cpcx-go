@@ -203,6 +203,27 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"ok": true, "user": u})
 }
 
+// handleDeleteMe 注销账号：删除用户及其所有关联数据（彩票、分享）
+func handleDeleteMe(w http.ResponseWriter, r *http.Request) {
+	uid := currentUserID(r)
+	// 删除用户的彩票记录
+	if _, err := DB.Exec("DELETE FROM lotteries WHERE user_id=?", uid); err != nil {
+		writeError(w, http.StatusInternalServerError, "注销失败：无法删除彩票数据")
+		return
+	}
+	// 删除用户的分享记录
+	if _, err := DB.Exec("DELETE FROM shares WHERE user_id=?", uid); err != nil {
+		writeError(w, http.StatusInternalServerError, "注销失败：无法删除分享数据")
+		return
+	}
+	// 删除用户本体
+	if _, err := DB.Exec("DELETE FROM users WHERE id=?", uid); err != nil {
+		writeError(w, http.StatusInternalServerError, "注销失败：无法删除用户")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{"ok": true, "msg": "账号已注销"})
+}
+
 // authUser 取当前登录用户（用于对比昵称）
 func authUser(r *http.Request) *User {
 	u, _ := getUserByID(currentUserID(r))

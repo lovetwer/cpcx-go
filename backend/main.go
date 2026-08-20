@@ -26,6 +26,7 @@ func main() {
 	router.Handle("POST", "/api/login/device", handleDeviceLogin)
 	router.Handle("GET", "/api/me", authMiddleware(handleMe))
 	router.Handle("PUT", "/api/me", authMiddleware(handleUpdateMe))
+	router.Handle("DELETE", "/api/me", authMiddleware(handleDeleteMe))
 
 	// 彩票管理模块
 	router.Handle("POST", "/api/lottery", authMiddleware(handleCreateLottery))
