@@ -3,11 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
+	// 强制设置时区为北京时间（Render 默认 UTC，会导致定时任务时间错乱）
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	time.Local = loc
+
 	// 加载 .env（不存在也不报错，方便纯环境变量部署）
 	_ = godotenv.Load()
 
