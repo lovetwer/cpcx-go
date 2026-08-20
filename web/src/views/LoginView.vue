@@ -7,7 +7,7 @@ import { toast } from '../store/toast'
 import Spinner from '../components/Spinner.vue'
 
 const router = useRouter()
-const mode = ref('login') // login | register | device
+const mode = ref('device') // device | login | register
 const username = ref('')
 const password = ref('')
 const email = ref('')
@@ -36,7 +36,7 @@ async function submit() {
       }
       r = await apiRegister(username.value, password.value, email.value, getDeviceId())
     } else {
-      r = await apiDeviceLogin(getDeviceId(), email.value)
+      r = await apiDeviceLogin(getDeviceId(), email.value, navigator.userAgent.includes('Mobile') ? 'WebMobile' : 'WebPC')
     }
 
     if (r.ok && r.data.token) {
@@ -62,9 +62,9 @@ async function submit() {
       </div>
 
       <div class="tabs">
+        <button :class="{ active: mode === 'device' }" @click="mode = 'device'">一键登录</button>
         <button :class="{ active: mode === 'login' }" @click="mode = 'login'">登录</button>
         <button :class="{ active: mode === 'register' }" @click="mode = 'register'">注册</button>
-        <button :class="{ active: mode === 'device' }" @click="mode = 'device'">设备登录</button>
       </div>
 
       <form class="login-form" @submit.prevent="submit">
@@ -85,12 +85,12 @@ async function submit() {
 
         <button class="btn btn-primary btn-block btn-lg" :disabled="loading">
           <Spinner v-if="loading" light />
-          <span>{{ mode === 'device' ? '登录' : mode === 'register' ? '注册并登录' : '登录' }}</span>
+          <span>{{ mode === 'device' ? '一键登录' : mode === 'register' ? '注册并登录' : '登录' }}</span>
         </button>
       </form>
 
       <p class="login-tip">
-        设备登录：本机生成持久设备号，下次打开自动登录，无需记密码。
+        一键登录：本机生成持久设备号，下次打开自动登录，无需记密码。
       </p>
 
       <!-- 免责声明 -->

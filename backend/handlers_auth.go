@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type registerReq struct {
@@ -18,8 +20,9 @@ type loginReq struct {
 }
 
 type deviceLoginReq struct {
-	DeviceID string `json:"device_id"`
-	Email    string `json:"email"`
+	DeviceID    string `json:"device_id"`
+	Email       string `json:"email"`
+	DeviceModel string `json:"device_model"`
 }
 
 type authResp struct {
@@ -84,6 +87,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleDeviceLogin 按设备号一键登录（无则自动建号）
+// 用户名格式：机型_时间戳（如 "XYD-W10_1739485210"），确保全局唯一不重复
 func handleDeviceLogin(w http.ResponseWriter, r *http.Request) {
 	var req deviceLoginReq
 	if err := readJSON(r, &req); err != nil || req.DeviceID == "" {
@@ -92,13 +96,16 @@ func handleDeviceLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	u, err := getUserByDevice(req.DeviceID)
 	if err != nil {
-		// 自动创建该设备对应的用户
+		// 自动创建该设备对应的用户，用户名 = 机型_时间戳，确保不重复
+		username := req.DeviceModel + "_" + fmt.Sprintf("%d", time.Now().Unix())
 		pw, _ := hashPassword(randHex(12))
 		res, e := DB.Exec("INSERT INTO users(username,password,device_id,email) VALUES(?,?,?,?)",
-			"device_"+req.DeviceID[:minInt(8, len(req.DeviceID))], pw, req.DeviceID, req.Email)
-		if e != nil {
-			writeError(w, http.StatusInternalServerError, "设备登录失败")
-			return
+			username, pw, req.DeviceID, req.Email)
+		// 若用户名冲突（极端情况），追加随机后缀重试
+		for e != nil {
+			username = req.DeviceModel + "_" + fmt.Sprintf("%d", time.Now().UnixNano())
+			res, e = DB.Exec("INSERT INTO users(username,password,device_id,email) VALUES(?,?,?,?)",
+				username, pw, req.DeviceID, req.Email)
 		}
 		id, _ := res.LastInsertId()
 		u, _ = getUserByID(id)

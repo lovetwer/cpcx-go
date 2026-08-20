@@ -27,8 +27,8 @@ export const apiRegister = (username, password, email, deviceId) =>
 export const apiLogin = (username, password) =>
   post('/api/login', { username, password })
 
-export const apiDeviceLogin = (deviceId, email) =>
-  post('/api/login/device', { device_id: deviceId, email })
+export const apiDeviceLogin = (deviceId, email, deviceModel) =>
+  post('/api/login/device', { device_id: deviceId, email, device_model: deviceModel || 'Web' })
 
 export const apiMe = () => get('/api/me')
 export const apiUpdateMe = (payload) => put('/api/me', payload)
