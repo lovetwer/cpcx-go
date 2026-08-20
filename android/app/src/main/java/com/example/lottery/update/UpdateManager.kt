@@ -40,9 +40,9 @@ import java.util.concurrent.TimeUnit
 class UpdateManager(private val activity: AppCompatActivity) {
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     private var cancelDownload = false
@@ -85,30 +85,32 @@ class UpdateManager(private val activity: AppCompatActivity) {
     }
 
     private fun fetchLatestRelease(): ReleaseInfo? {
-        val url =
-            "https://api.github.com/repos/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}/releases/latest"
-        val req = Request.Builder()
-            .url(url)
-            .header("User-Agent", "cpcx-android")
-            .header("Accept", "application/vnd.github+json")
-            .build()
-        val resp = client.newCall(req).execute()
-        if (!resp.isSuccessful) return null
-        val bodyStr = resp.body?.string() ?: return null
-        val json = JSONObject(bodyStr)
-        val tag = json.optString("tag_name", "")
-        val notes = json.optString("body", "")
-        val htmlUrl = json.optString("html_url", "")
-        if (tag.isBlank()) return null
-        // 优先从 Release assets 中获取 APK 下载链接（无缓存问题）
-        // 回退到 jsDelivr CDN（release 分支根目录的 cpcx.apk）
-        val apkUrl = json.optJSONArray("assets")?.let { assets ->
-            (0 until assets.length()).map { assets.getJSONObject(it) }
-                .firstOrNull { it.optString("name") == "cpcx.apk" }
-                ?.optString("browser_download_url")
-        }?.takeIf { it.isNotBlank() }
-            ?: "https://cdn.jsdelivr.net/gh/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}@release/cpcx.apk"
-        return ReleaseInfo(tag, notes, apkUrl, htmlUrl)
+        // GitHub API 国内不稳定，依次尝试直连 → jsDelivr 代理
+        val urls = listOf(
+            "https://api.github.com/repos/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}/releases/latest",
+            "https://cdn.jsdelivr.net/gh/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}@main/.latest-release.json"
+        )
+        for (url in urls) {
+            try {
+                val req = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", "cpcx-android")
+                    .header("Accept", "application/vnd.github+json")
+                    .build()
+                val resp = client.newCall(req).execute()
+                if (!resp.isSuccessful) { resp.close(); continue }
+                val bodyStr = resp.body?.string() ?: continue
+                val json = JSONObject(bodyStr)
+                val tag = json.optString("tag_name", json.optString("tag", ""))
+                if (tag.isBlank()) continue
+                val notes = json.optString("body", "")
+                val htmlUrl = json.optString("html_url", "")
+                // 下载 APK 走 jsDelivr CDN（国内有节点，速度快且稳定）
+                val apkUrl = "https://cdn.jsdelivr.net/gh/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}@release/cpcx.apk"
+                return ReleaseInfo(tag, notes, apkUrl, htmlUrl)
+            } catch (_: Exception) { continue }
+        }
+        return null
     }
 
     private fun showUpdateDialog(r: ReleaseInfo) {

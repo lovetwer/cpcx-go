@@ -34,6 +34,8 @@ class LotteryApp : Application() {
             .addInterceptor { chain ->
                 val req = chain.request()
                 val builder = req.newBuilder()
+                // Cloudflare Bot Fight Mode 会拦截非浏览器 UA，必须伪装
+                builder.header("User-Agent", "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
                 val token = authStore.token
                 if (token.isNotEmpty()) {
                     builder.addHeader("Authorization", "Bearer $token")
