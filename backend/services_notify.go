@@ -132,6 +132,19 @@ func buildWinDigestEmail(ws []WinRecord) string {
 	poolInfo := ""
 	if ws[0].Draw.PoolAmount > 0 {
 		poolInfo = fmt.Sprintf(`<p style="margin:0 0 12px;color:#888;font-size:13px">本期奖池资金：<b>%s</b></p>`, poolAmountDesc(ws[0].Draw.PoolAmount))
+	} else {
+		// 灰鸟API无奖池数据，对一等奖/二等奖提醒用户查看官方奖池
+		hasHighTier := false
+		for _, w := range ws {
+			tier := prizeTier(w.Lot.Type, w.MatchedRed, w.MatchedBlue, w.Draw.PoolAmount)
+			if tier == "一等奖" || tier == "二等奖" {
+				hasHighTier = true
+				break
+			}
+		}
+		if hasHighTier {
+			poolInfo = `<p style="margin:0 0 12px;color:#e65100;font-size:13px;background:#fff3e0;padding:8px 12px;border-radius:6px">⚠️ 您可能中了一等奖或二等奖（浮动奖）！本期奖池数据暂未获取，请前往<a href="https://www.cwl.gov.cn/" style="color:#1565c0">福彩官网</a>或<a href="https://www.sporttery.cn/" style="color:#1565c0">体彩官网</a>查看实际奖金。</p>`
+		}
 	}
 	return fmt.Sprintf(`<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #eee;border-radius:12px">
 <h2 style="color:#d4380d;margin:0 0 12px">🎉 恭喜中奖！</h2>
