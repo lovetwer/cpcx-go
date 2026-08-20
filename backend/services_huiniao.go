@@ -21,15 +21,15 @@ type cwlPrizeGrade struct {
 }
 
 type cwlDrawItem struct {
-	Name        string            `json:"name"`
-	Code        string            `json:"code"`       // 期号，如 "2026095"
-	Date        string            `json:"date"`       // 如 "2026-08-18(二)"
-	Red         string            `json:"red"`        // 如 "04,06,14,21,22,33"
-	Blue        string            `json:"blue"`       // 如 "16"
-	PoolMoney   string            `json:"poolmoney"`  // 奖池金额（元），如 "628888733"
-	FyjCount    string            `json:"fyjCount"`   // 福运奖注数
-	FyjMoney    string            `json:"fyjMoney"`   // 福运奖奖金
-	PrizeGrades []cwlPrizeGrade   `json:"prizegrades"`
+	Name        string          `json:"name"`
+	Code        string          `json:"code"`       // 期号，如 "2026095"
+	Date        string          `json:"date"`       // 如 "2026-08-18(二)"
+	Red         string          `json:"red"`        // 如 "04,06,14,21,22,33"
+	Blue        string          `json:"blue"`       // 如 "16"
+	PoolMoney   string          `json:"poolmoney"`  // 奖池金额（元），如 "628888733"
+	FyjCount    string          `json:"fyjCount"`   // 福运奖注数
+	FyjMoney    string          `json:"fyjMoney"`   // 福运奖奖金
+	PrizeGrades []cwlPrizeGrade `json:"prizegrades"`
 }
 
 type cwlResp struct {
@@ -43,18 +43,18 @@ type cwlResp struct {
 // 需带 User-Agent + Referer: https://www.sporttery.cn/
 
 type sportPrizeLevel struct {
-	PrizeLevel        string      `json:"prizeLevel"`         // 如 "一等奖"
-	StakeCount        string      `json:"stakeCount"`         // 中奖注数
-	StakeAmountFormat string      `json:"stakeAmountFormat"`  // 单注奖金（元），如 "8380751"
-	Sort              json.Number `json:"sort"`               // 排序号
+	PrizeLevel        string      `json:"prizeLevel"`
+	StakeCount        string      `json:"stakeCount"`
+	StakeAmountFormat string      `json:"stakeAmountFormat"`
+	Sort              json.Number `json:"sort"`
 }
 
 type sportDrawItem struct {
-	LotteryDrawNum    string            `json:"lotteryDrawNum"`    // 期号，如 "26094"
-	LotteryDrawResult string            `json:"lotteryDrawResult"` // 如 "05 14 15 17 33 01 07"
-	LotteryDrawTime   string            `json:"lotteryDrawTime"`   // 如 "2026-08-19"
-	PoolBalance       string            `json:"poolBalance"`       // 奖池金额，如 "772,986,652.76"
-	PoolBalanceAfter  string            `json:"poolBalanceAfterdraw"` // 开奖后奖池
+	LotteryDrawNum    string            `json:"lotteryDrawNum"`
+	LotteryDrawResult string            `json:"lotteryDrawResult"`
+	LotteryDrawTime   string            `json:"lotteryDrawTime"`
+	PoolBalance       string            `json:"poolBalance"`
+	PoolBalanceAfter  string            `json:"poolBalanceAfterdraw"`
 	PrizeLevelList    []sportPrizeLevel `json:"prizeLevelList"`
 }
 
@@ -65,26 +65,33 @@ type sportResp struct {
 	} `json:"value"`
 }
 
-// ---------- 备用API：中彩网（第三方聚合） ----------
-// https://www.mxnzd.cn/api/lottery?type=ssq
-// 返回格式：{"code":1,"msg":"success","data":[{"issue":"2026095","date":"2026-08-18","red":"04,06,14,21,22,33","blue":"16","pool":"628888733"}]}
+// ---------- 灰鸟API（备用，无奖池但海外可用） ----------
+// http://api.huiniao.top/interface/home/lotteryHistory?type=ssq&page=1&limit=30
+// type: ssq=双色球, dlt=大乐透
+// 双色球: one~six=红球, seven=蓝球
+// 大乐透: one~five=前区, six~seven=后区
 
-type mxnzdItem struct {
-	Issue string `json:"issue"`
-	Date  string `json:"date"`
-	Red   string `json:"red"`
-	Blue  string `json:"blue"`
-	Pool  string `json:"pool"`
+type huiniaoItem struct {
+	Code      string `json:"code"`       // 期号
+	Day       string `json:"day"`        // 开奖日期 "2026-08-20"
+	One       string `json:"one"`
+	Two       string `json:"two"`
+	Three     string `json:"three"`
+	Four      string `json:"four"`
+	Five      string `json:"five"`
+	Six       string `json:"six"`
+	Seven     string `json:"seven"`
+	OpenTime  string `json:"open_time"`  // "2026-08-20 21:15:00"
 }
 
-type mxnzdResp struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"msg"`
-	Data []mxnzdItem `json:"data"`
+type huiniaoResp struct {
+	Code int    `json:"code"`
+	Info string `json:"info"`
+	Data struct {
+		Last huiniaoItem   `json:"last"`
+		List []huiniaoItem `json:"list"`
+	} `json:"data"`
 }
-
-// ---------- 备用API：api.jisuapi.com（极速API） ----------
-// 另一个备用方案
 
 // ---------- 通用 HTTP 请求 ----------
 
@@ -93,7 +100,6 @@ func httpGetJSON(url, referer string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// 完整浏览器 UA，避免被 WAF 拦截
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	if referer != "" {
@@ -117,14 +123,12 @@ func httpGetJSON(url, referer string) ([]byte, error) {
 	}
 
 	// 检查是否为 JSON（避免 HTML/WAF 拦截页）
-	bodyStr := string(body)
-	if len(bodyStr) == 0 {
+	if len(body) == 0 {
 		return nil, fmt.Errorf("空响应")
 	}
-	first := bodyStr[0]
+	first := body[0]
 	if first != '{' && first != '[' {
-		// 不是 JSON，可能是 HTML 拦截页
-		preview := bodyStr
+		preview := string(body)
 		if len(preview) > 200 {
 			preview = preview[:200]
 		}
@@ -156,7 +160,7 @@ func PullLottery() (bool, error) {
 	return anyNew, lastErr
 }
 
-// pullOneType 从官方API拉取单种彩票的开奖结果
+// pullOneType 拉取单种彩票的开奖结果
 func pullOneType(t string) (bool, error) {
 	switch t {
 	case TypeSSQ:
@@ -168,25 +172,25 @@ func pullOneType(t string) (bool, error) {
 	}
 }
 
-// pullSSQ 从福彩官方API拉取双色球开奖，失败则尝试备用API
+// pullSSQ 拉取双色球开奖
+// 策略：优先官方API（有奖池），失败用灰鸟API（无奖池）
 func pullSSQ() (bool, error) {
-	// 方案1：福彩官方API
+	// 方案1：福彩官方API（有奖池金额）
 	url := "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice?name=ssq&pageNo=1&pageSize=30&systemType=PC"
 	body, err := httpGetJSON(url, "https://www.cwl.gov.cn/")
 	if err != nil {
-		logErr("福彩官方API失败，尝试备用源: %v", err)
-		// 方案2：备用API
-		return pullSSQBackup()
+		logErr("福彩官方API失败，切换灰鸟API: %v", err)
+		return pullSSQHuiniao()
 	}
 
 	var cr cwlResp
 	if err := json.Unmarshal(body, &cr); err != nil {
-		logErr("解析福彩官方API失败，尝试备用源: %v", err)
-		return pullSSQBackup()
+		logErr("解析福彩官方API失败，切换灰鸟API: %v", err)
+		return pullSSQHuiniao()
 	}
 	if cr.State != 0 {
-		logErr("福彩API返回 state=%d message=%s，尝试备用源", cr.State, cr.Message)
-		return pullSSQBackup()
+		logErr("福彩API返回 state=%d message=%s，切换灰鸟API", cr.State, cr.Message)
+		return pullSSQHuiniao()
 	}
 
 	anyNew := false
@@ -194,14 +198,11 @@ func pullSSQ() (bool, error) {
 		if it.Code == "" || it.Red == "" {
 			continue
 		}
-		// 提取日期部分：从 "2026-08-18(二)" 中取 "2026-08-18"
 		drawDate := it.Date
 		if idx := strings.Index(drawDate, "("); idx > 0 {
 			drawDate = drawDate[:idx]
 		}
-		// 解析奖池金额（单位：元，字符串数字）
 		poolAmount := parsePoolAmount(it.PoolMoney)
-		// 解析福运奖信息
 		fyjCount, fyjMoney := parseFyjInfo(it.FyjCount, it.FyjMoney)
 
 		isNew, err := upsertDrawWithPool(TypeSSQ, it.Code, normalizeBalls(it.Red), normalizeBalls(it.Blue), drawDate, poolAmount, fyjCount, fyjMoney)
@@ -212,99 +213,68 @@ func pullSSQ() (bool, error) {
 			anyNew = true
 		}
 	}
+	logInfo("福彩官方API成功（含奖池）")
 	return anyNew, nil
 }
 
-// pullSSQBackup 备用API拉取双色球（用于官方API被WAF拦截时）
-func pullSSQBackup() (bool, error) {
-	// 备用API：中彩网聚合API
-	urls := []string{
-		"https://www.mxnzd.cn/api/lottery?type=ssq&limit=30",
-		"https://api.apiopen.top/api/lottery/ssq?size=30",
+// pullSSQHuiniao 灰鸟API拉取双色球（备用，无奖池）
+func pullSSQHuiniao() (bool, error) {
+	url := "http://api.huiniao.top/interface/home/lotteryHistory?type=ssq&page=1&limit=30"
+	body, err := httpGetJSON(url, "")
+	if err != nil {
+		return false, fmt.Errorf("灰鸟API失败: %w", err)
 	}
 
-	for _, url := range urls {
-		body, err := httpGetJSON(url, "")
-		if err != nil {
-			logErr("备用API %s 失败: %v", url, err)
+	var hr huiniaoResp
+	if err := json.Unmarshal(body, &hr); err != nil {
+		return false, fmt.Errorf("解析灰鸟API失败: %w", err)
+	}
+	if hr.Code != 1 || len(hr.Data.List) == 0 {
+		return false, fmt.Errorf("灰鸟API返回 code=%d info=%s", hr.Code, hr.Info)
+	}
+
+	anyNew := false
+	for _, it := range hr.Data.List {
+		if it.Code == "" || it.One == "" {
 			continue
 		}
-
-		// 尝试解析 mxnzd 格式
-		var mr mxnzdResp
-		if err := json.Unmarshal(body, &mr); err == nil && mr.Code == 1 && len(mr.Data) > 0 {
-			logInfo("备用API(%s) 成功获取 %d 条双色球记录", url, len(mr.Data))
-			anyNew := false
-			for _, it := range mr.Data {
-				if it.Issue == "" || it.Red == "" {
-					continue
-				}
-				poolAmount := parsePoolAmount(it.Pool)
-				isNew, err := upsertDrawWithPool(TypeSSQ, it.Issue, normalizeBalls(it.Red), normalizeBalls(it.Blue), it.Date, poolAmount, "", "")
-				if err != nil {
-					logErr("写入 %s 期号 %s 失败: %v", TypeSSQ, it.Issue, err)
-				}
-				if isNew {
-					anyNew = true
-				}
-			}
-			return anyNew, nil
+		// 双色球: one~six=红球, seven=蓝球
+		red := strings.Join([]string{it.One, it.Two, it.Three, it.Four, it.Five, it.Six}, ",")
+		blue := it.Seven
+		// 日期取 day 字段（"2026-08-20"）
+		drawDate := it.Day
+		// 灰鸟API无奖池信息，poolAmount=0
+		isNew, err := upsertDrawWithPool(TypeSSQ, it.Code, normalizeBalls(red), normalizeBalls(blue), drawDate, 0, "", "")
+		if err != nil {
+			logErr("写入 %s 期号 %s 失败: %v", TypeSSQ, it.Code, err)
 		}
-
-		// 尝试解析 apiopen 格式
-		var ar struct {
-			Code int `json:"code"`
-			Data struct {
-				List []struct {
-					Issue  string `json:"term"`
-					Date   string `json:"date"`
-					Red    string `json:"red"`
-					Blue   string `json:"blue"`
-					Pool   string `json:"pool"`
-				} `json:"list"`
-			} `json:"data"`
-		}
-		if err := json.Unmarshal(body, &ar); err == nil && ar.Code == 200 && len(ar.Data.List) > 0 {
-			logInfo("备用API(%s) 成功获取 %d 条双色球记录", url, len(ar.Data.List))
-			anyNew := false
-			for _, it := range ar.Data.List {
-				if it.Issue == "" || it.Red == "" {
-					continue
-				}
-				poolAmount := parsePoolAmount(it.Pool)
-				isNew, err := upsertDrawWithPool(TypeSSQ, it.Issue, normalizeBalls(it.Red), normalizeBalls(it.Blue), it.Date, poolAmount, "", "")
-				if err != nil {
-					logErr("写入 %s 期号 %s 失败: %v", TypeSSQ, it.Issue, err)
-				}
-				if isNew {
-					anyNew = true
-				}
-			}
-			return anyNew, nil
+		if isNew {
+			anyNew = true
 		}
 	}
-
-	return false, fmt.Errorf("所有备用API均失败")
+	logInfo("灰鸟API成功（无奖池）")
+	return anyNew, nil
 }
 
-// pullDLT 从体彩官方API拉取大乐透开奖，失败则尝试备用API
+// pullDLT 拉取大乐透开奖
+// 策略：优先官方API（有奖池），失败用灰鸟API（无奖池）
 func pullDLT() (bool, error) {
-	// 方案1：体彩官方API
+	// 方案1：体彩官方API（有奖池金额）
 	url := "https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry?gameNo=85&provinceId=0&pageSize=30&pageNo=1&isVerify=1"
 	body, err := httpGetJSON(url, "https://www.sporttery.cn/")
 	if err != nil {
-		logErr("体彩官方API失败，尝试备用源: %v", err)
-		return pullDLTBackup()
+		logErr("体彩官方API失败，切换灰鸟API: %v", err)
+		return pullDLTHuiniao()
 	}
 
 	var sr sportResp
 	if err := json.Unmarshal(body, &sr); err != nil {
-		logErr("解析体彩官方API失败，尝试备用源: %v", err)
-		return pullDLTBackup()
+		logErr("解析体彩官方API失败，切换灰鸟API: %v", err)
+		return pullDLTHuiniao()
 	}
 	if !sr.Success {
-		logErr("体彩API返回 success=false，尝试备用源")
-		return pullDLTBackup()
+		logErr("体彩API返回 success=false，切换灰鸟API")
+		return pullDLTHuiniao()
 	}
 
 	anyNew := false
@@ -312,8 +282,6 @@ func pullDLT() (bool, error) {
 		if it.LotteryDrawNum == "" || it.LotteryDrawResult == "" {
 			continue
 		}
-		// lotteryDrawResult 格式："05 14 15 17 33 01 07"
-		// 前5个是前区（红球），后2个是后区（蓝球）
 		parts := strings.Fields(it.LotteryDrawResult)
 		if len(parts) < 7 {
 			logErr("大乐透期号 %s 开奖号码不足7个: %s", it.LotteryDrawNum, it.LotteryDrawResult)
@@ -321,7 +289,6 @@ func pullDLT() (bool, error) {
 		}
 		red := strings.Join(parts[:5], ",")
 		blue := strings.Join(parts[5:7], ",")
-		// 解析奖池金额（带逗号和小数，如 "772,986,652.76"）
 		poolAmount := parsePoolAmount(it.PoolBalanceAfter)
 
 		isNew, err := upsertDrawWithPool(TypeDLT, it.LotteryDrawNum, normalizeBalls(red), normalizeBalls(blue), it.LotteryDrawTime, poolAmount, "", "")
@@ -332,78 +299,46 @@ func pullDLT() (bool, error) {
 			anyNew = true
 		}
 	}
+	logInfo("体彩官方API成功（含奖池）")
 	return anyNew, nil
 }
 
-// pullDLTBackup 备用API拉取大乐透（用于官方API被WAF拦截时）
-func pullDLTBackup() (bool, error) {
-	urls := []string{
-		"https://www.mxnzd.cn/api/lottery?type=dlt&limit=30",
-		"https://api.apiopen.top/api/lottery/dlt?size=30",
+// pullDLTHuiniao 灰鸟API拉取大乐透（备用，无奖池）
+func pullDLTHuiniao() (bool, error) {
+	url := "http://api.huiniao.top/interface/home/lotteryHistory?type=dlt&page=1&limit=30"
+	body, err := httpGetJSON(url, "")
+	if err != nil {
+		return false, fmt.Errorf("灰鸟API失败: %w", err)
 	}
 
-	for _, url := range urls {
-		body, err := httpGetJSON(url, "")
-		if err != nil {
-			logErr("备用API %s 失败: %v", url, err)
+	var hr huiniaoResp
+	if err := json.Unmarshal(body, &hr); err != nil {
+		return false, fmt.Errorf("解析灰鸟API失败: %w", err)
+	}
+	if hr.Code != 1 || len(hr.Data.List) == 0 {
+		return false, fmt.Errorf("灰鸟API返回 code=%d info=%s", hr.Code, hr.Info)
+	}
+
+	anyNew := false
+	for _, it := range hr.Data.List {
+		if it.Code == "" || it.One == "" {
 			continue
 		}
-
-		// 尝试解析 mxnzd 格式
-		var mr mxnzdResp
-		if err := json.Unmarshal(body, &mr); err == nil && mr.Code == 1 && len(mr.Data) > 0 {
-			logInfo("备用API(%s) 成功获取 %d 条大乐透记录", url, len(mr.Data))
-			anyNew := false
-			for _, it := range mr.Data {
-				if it.Issue == "" || it.Red == "" {
-					continue
-				}
-				poolAmount := parsePoolAmount(it.Pool)
-				isNew, err := upsertDrawWithPool(TypeDLT, it.Issue, normalizeBalls(it.Red), normalizeBalls(it.Blue), it.Date, poolAmount, "", "")
-				if err != nil {
-					logErr("写入 %s 期号 %s 失败: %v", TypeDLT, it.Issue, err)
-				}
-				if isNew {
-					anyNew = true
-				}
-			}
-			return anyNew, nil
+		// 大乐透: one~five=前区(红球), six~seven=后区(蓝球)
+		red := strings.Join([]string{it.One, it.Two, it.Three, it.Four, it.Five}, ",")
+		blue := strings.Join([]string{it.Six, it.Seven}, ",")
+		drawDate := it.Day
+		// 灰鸟API无奖池信息，poolAmount=0
+		isNew, err := upsertDrawWithPool(TypeDLT, it.Code, normalizeBalls(red), normalizeBalls(blue), drawDate, 0, "", "")
+		if err != nil {
+			logErr("写入 %s 期号 %s 失败: %v", TypeDLT, it.Code, err)
 		}
-
-		// 尝试解析 apiopen 格式
-		var ar struct {
-			Code int `json:"code"`
-			Data struct {
-				List []struct {
-					Issue  string `json:"term"`
-					Date   string `json:"date"`
-					Red    string `json:"red"`
-					Blue   string `json:"blue"`
-					Pool   string `json:"pool"`
-				} `json:"list"`
-			} `json:"data"`
-		}
-		if err := json.Unmarshal(body, &ar); err == nil && ar.Code == 200 && len(ar.Data.List) > 0 {
-			logInfo("备用API(%s) 成功获取 %d 条大乐透记录", url, len(ar.Data.List))
-			anyNew := false
-			for _, it := range ar.Data.List {
-				if it.Issue == "" || it.Red == "" {
-					continue
-				}
-				poolAmount := parsePoolAmount(it.Pool)
-				isNew, err := upsertDrawWithPool(TypeDLT, it.Issue, normalizeBalls(it.Red), normalizeBalls(it.Blue), it.Date, poolAmount, "", "")
-				if err != nil {
-					logErr("写入 %s 期号 %s 失败: %v", TypeDLT, it.Issue, err)
-				}
-				if isNew {
-					anyNew = true
-				}
-			}
-			return anyNew, nil
+		if isNew {
+			anyNew = true
 		}
 	}
-
-	return false, fmt.Errorf("所有备用API均失败")
+	logInfo("灰鸟API成功（无奖池）")
+	return anyNew, nil
 }
 
 // parsePoolAmount 把 "628888733" 或 "772,986,652.76" 解析成整数（元）
@@ -413,7 +348,6 @@ func parsePoolAmount(s string) int64 {
 	if s == "" {
 		return 0
 	}
-	// 可能有小数部分，取整
 	if idx := strings.Index(s, "."); idx > 0 {
 		s = s[:idx]
 	}
