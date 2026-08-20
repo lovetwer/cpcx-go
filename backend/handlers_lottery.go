@@ -145,7 +145,7 @@ func handleListLottery(w http.ResponseWriter, r *http.Request) {
 		args = append(args, "%"+kw+"%", "%"+kw+"%")
 	}
 	where := strings.Join(conds, " AND ")
-	rows, err := DB.Query("SELECT id,user_id,type,issue,red_balls,blue_balls,play_type,multiple,banker_red,banker_blue,bets,status,prize_tier,created_at FROM lotteries WHERE "+where+" ORDER BY created_at DESC, id DESC LIMIT 500", args...)
+	rows, err := DB.Query("SELECT id,user_id,type,issue,red_balls,blue_balls,play_type,multiple,banker_red,banker_blue,bets,status,prize_tier,created_at FROM lotteries WHERE "+where+" ORDER BY issue DESC, created_at DESC, id DESC LIMIT 500", args...)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "查询失败")
 		return
