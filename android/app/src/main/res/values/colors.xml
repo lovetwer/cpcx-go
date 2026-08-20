@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============ 设计令牌（与网页 styles.css 一一对应） ============ -->
+    <color name="white">#ffffff</color>
+    <color name="bg">#f8f8f8</color>
+    <color name="bg_page">#e9ebef</color>
+    <color name="surface">#ffffff</color>
+    <color name="surface_2">#f1f1f4</color>
+    <color name="border">#e7e7ea</color>
+    <color name="border_strong">#d8d8de</color>
+    <color name="text">#1d1c1d</color>
+    <color name="muted">#616061</color>
+
+    <color name="primary">#ff4d4d</color>
+    <color name="primary_600">#e23b3b</color>
+    <!-- primary @ 10% alpha -->
+    <color name="primary_100">#1aff4d4d</color>
+
+    <color name="red">#e23b4e</color>
+    <color name="blue">#2f6fb0</color>
+    <color name="green">#15a06a</color>
+    <color name="gold">#b8860b</color>
+    <color name="danger">#e23b4e</color>
+
+    <!-- 球号渐变（红球 / 蓝球 / 选中蓝 / 胆码） -->
+    <color name="ball_red_top">#ff8a93</color>
+    <color name="ball_red_bottom">#d8343f</color>
+    <color name="ball_blue_top">#6fa8e8</color>
+    <color name="ball_blue_bottom">#2f6fb0</color>
+    <color name="ball_pick_blue_top">#82b4ec</color>
+    <color name="ball_pick_blue_bottom">#2f6fb0</color>
+    <color name="ball_banker_top">#f1d57e</color>
+    <color name="ball_banker_bottom">#c9a227</color>
+
+    <!-- 待开奖斜纹底 -->
+    <color name="pending_line">#9aa3b2</color>
+
+    <!-- 中奖等级（统一红色主题，按深浅区分，与网页 TIER_STYLE 对应） -->
+    <color name="tier1_bg">#32c8182e</color>
+    <color name="tier1_fg">#c0152f</color>
+    <color name="tier2_bg">#26d8343f</color>
+    <color name="tier2_fg">#d8343f</color>
+    <color name="tier3_bg">#23e85a5f</color>
+    <color name="tier3_fg">#d8343f</color>
+    <color name="tier4_bg">#21f07a7e</color>
+    <color name="tier4_fg">#d8343f</color>
+    <color name="tier5_bg">#1ff59a9d</color>
+    <color name="tier5_fg">#d8343f</color>
+    <color name="tier6_bg">#1efab8ba</color>
+    <color name="tier6_fg">#c0152f</color>
+    <color name="tier7_bg">#1afac8c8</color>
+    <color name="tier7_fg">#c0152f</color>
+    <color name="tier_fuyun_bg">#26ffc107</color>
+    <color name="tier_fuyun_fg">#b8860b</color>
+</resources>

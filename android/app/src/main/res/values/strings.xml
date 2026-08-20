@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">大奖来了</string>
+
+    <!-- 底部 Tab -->
+    <string name="tab_add">录入</string>
+    <string name="tab_draw">开奖</string>
+    <string name="tab_buy">购彩</string>
+    <string name="tab_profile">我的</string>
+
+    <!-- 通用 -->
+    <string name="loading">加载中…</string>
+    <string name="empty_lottery">还没有彩票，去「录入」页添加吧</string>
+    <string name="empty_draw">暂无开奖数据</string>
+    <string name="btn_save">保存彩票</string>
+    <string name="tip_device_login">设备登录：本机生成持久设备号，下次打开自动登录，无需记密码。</string>
+
+    <!-- 购彩页筛选 -->
+    <string-array name="filter_type">
+        <item>全部彩种</item>
+        <item>双色球</item>
+        <item>大乐透</item>
+    </string-array>
+    <string-array name="filter_status">
+        <item>全部状态</item>
+        <item>未开奖</item>
+        <item>未中奖</item>
+        <item>已中奖</item>
+    </string-array>
+</resources>

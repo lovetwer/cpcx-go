@@ -5,7 +5,8 @@
 # ===== Go 编译产物 =====
 *.exe
 lottery-manager
-app
+/app
+/backend/app
 
 # ===== Go 测试缓存 =====
 *.test

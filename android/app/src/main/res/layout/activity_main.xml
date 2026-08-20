@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg">
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- 底部 Tab 栏（对应网页 AppNav.vue：录入 / 开奖 / 购彩 / 我的） -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/surface"
+        android:elevation="8dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/navAdd"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="9dp"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/iconAdd"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:src="@drawable/ic_tab_add"
+                android:tint="@color/muted" />
+
+            <TextView
+                android:id="@+id/labelAdd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_add"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/muted" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navDraw"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="9dp"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/iconDraw"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:src="@drawable/ic_tab_draw"
+                android:tint="@color/muted" />
+
+            <TextView
+                android:id="@+id/labelDraw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_draw"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/muted" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navBuy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="9dp"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/iconBuy"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:src="@drawable/ic_tab_buy"
+                android:tint="@color/muted" />
+
+            <TextView
+                android:id="@+id/labelBuy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_buy"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/muted" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navProfile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="9dp"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/iconProfile"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:src="@drawable/ic_tab_profile"
+                android:tint="@color/muted" />
+
+            <TextView
+                android:id="@+id/labelProfile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/tab_profile"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/muted" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
