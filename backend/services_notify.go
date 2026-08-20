@@ -233,6 +233,7 @@ func buildWinPush(recs []WinRecord) string {
 func buildLoseDigestEmail(ls []LoseRecord) string {
 	u := ls[0].User
 	var rows strings.Builder
+	fyjHint := ""
 	for _, l := range ls {
 		rows.WriteString(fmt.Sprintf(`<tr>
 <td style="padding:8px 6px;border-bottom:1px solid #eee">%s</td>
@@ -242,6 +243,10 @@ func buildLoseDigestEmail(ls []LoseRecord) string {
 <td style="padding:8px 6px;border-bottom:1px solid #eee;color:#999">%d 红 %d 蓝</td>
 <td style="padding:8px 6px;border-bottom:1px solid #eee;color:#999">未中奖</td>
 </tr>`, TypeName(l.Lot.Type), l.Lot.Issue, l.Lot.RedBalls, l.Lot.BlueBalls, l.Draw.RedBalls, l.Draw.BlueBalls, l.MatchedRed, l.MatchedBlue))
+		// 双色球3红+0蓝且无奖池数据，可能符合福运奖条件（需奖池≥15亿）
+		if l.Lot.Type == TypeSSQ && l.MatchedRed == 3 && l.MatchedBlue == 0 && l.Draw.PoolAmount == 0 {
+			fyjHint = `<p style="margin:12px 0;color:#e65100;font-size:13px;background:#fff3e0;padding:8px 12px;border-radius:6px">⚠️ 您有双色球命中3个红球，可能符合"福运奖"条件（需本期奖池≥15亿元）。请前往<a href="https://www.cwl.gov.cn/" style="color:#1565c0">福彩官网</a>查看本期奖池是否达标。</p>`
+		}
 	}
 	return fmt.Sprintf(`<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff;border:1px solid #eee;border-radius:12px">
 <h2 style="color:#666;margin:0 0 12px">😅 本期未中奖</h2>
@@ -251,7 +256,8 @@ func buildLoseDigestEmail(ls []LoseRecord) string {
 %s
 </table>
 <p style="margin-top:16px;color:#888;font-size:13px">感谢使用大奖来了，祝您下次好运！本邮件由系统自动发送。</p>
-</div>`, u.Username, len(ls), rows.String())
+%s
+</div>`, u.Username, len(ls), rows.String(), fyjHint)
 }
 
 // buildLoseSubject 生成未中奖邮件标题
