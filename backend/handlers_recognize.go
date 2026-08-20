@@ -48,14 +48,27 @@ func handleRecognize(w http.ResponseWriter, r *http.Request) {
 				res.Issue = latest
 			}
 		}
+		// 优先返回 draw_date（开奖日期），没有则返回 issue（期号）
+		drawDate := ""
+		if res.Issue != "" {
+			// 尝试按 issue 查找对应 draw_date
+			var d string
+			_ = DB.QueryRow("SELECT draw_date FROM draw_results WHERE type=? AND issue=? ORDER BY id DESC LIMIT 1", res.Type, res.Issue).Scan(&d)
+			if d != "" {
+				drawDate = d
+			}
+		}
+		if drawDate == "" {
+			drawDate = res.Issue
+		}
 		if dryRun {
 			parsed = append(parsed, map[string]interface{}{
-				"type": res.Type, "issue": res.Issue,
+				"type": res.Type, "issue": drawDate,
 				"red_balls": red, "blue_balls": blue,
 			})
 			continue
 		}
-		lot := Lottery{UserID: uid, Type: res.Type, Issue: res.Issue, RedBalls: red, BlueBalls: blue, Status: StatusPending}
+		lot := Lottery{UserID: uid, Type: res.Type, Issue: drawDate, RedBalls: red, BlueBalls: blue, Status: StatusPending}
 		if err := insertLottery(&lot); err != nil {
 			skipped = append(skipped, map[string]interface{}{"issue": res.Issue, "reason": "写入失败"})
 			continue

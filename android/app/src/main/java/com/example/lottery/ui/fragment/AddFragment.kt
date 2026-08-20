@@ -433,7 +433,7 @@ class AddFragment : Fragment() {
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.muted))
             }
             val issueLabel = TextView(requireContext()).apply {
-                text = if (b.issue.isNotEmpty()) " 第${b.issue}期 " else " 期号待识别 "; textSize = 12f
+                text = if (b.issue.isNotEmpty()) " ${fmtDate(b.issue)} " else " 日期待识别 "; textSize = 12f
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.muted))
             }
             infoRow.addView(idx); infoRow.addView(typeLabel); infoRow.addView(issueLabel)

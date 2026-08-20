@@ -53,16 +53,16 @@ func RecognizeLottery(imageBytes []byte, filename string) ([]OCRResult, error) {
 
 识别规则：
 1. 彩种：如果票面有"双色球"字样，type为"ssq"；有"大乐透"字样，type为"dlt"
-2. 期号：形如"第2026093期"中的数字部分，如无法识别则留空字符串""
+2. issue字段：优先识别票面印刷的"开奖日期"（格式如 2026-08-20 或 2026年08月20日）；如果没有开奖日期，则识别"第XXXXX期"中的期号数字；如都无法识别则留空字符串""
 3. 红球/前区号码：双色球是6个(01-33)，大乐透是5个(01-35)，用两位数逗号分隔
 4. 蓝球/后区号码：双色球是1个(01-16)，大乐透是2个(01-12)，用两位数逗号分隔
 5. 一张票可能有多注，每注输出一个数组元素
-6. 忽略条形码、金额、日期、说明文字等非投注号码信息
+6. 忽略条形码、金额、说明文字等非投注号码信息
 
-输出格式示例：
-[{"type":"ssq","issue":"2026093","red_balls":"03,07,15,20,21,24","blue_balls":"09"}]
+输出格式示例（优先返回日期）：
+[{"type":"ssq","issue":"2026-08-20","red_balls":"03,07,15,20,21,24","blue_balls":"09"}]
 或
-[{"type":"dlt","issue":"2026092","red_balls":"03,07,15,20,21","blue_balls":"01,09"}]
+[{"type":"dlt","issue":"2026-08-18","red_balls":"03,07,15,20,21","blue_balls":"01,09"}]
 
 请只输出JSON数组，不要输出其他任何内容。`
 
@@ -161,9 +161,13 @@ func RecognizeLottery(imageBytes []byte, filename string) ([]OCRResult, error) {
 	return nil, err
 }
 
-// extractIssueFromText 从模型原始转写文本里抠期号：匹配“第2026093期”或“期号2024090”
-// （也可能是一串日期如 2026-08-13，这里只抓标准期号写法，避免误把条形码当期号）。
+// extractIssueFromText 从模型原始转写文本里优先抠开奖日期，没有则抠期号。
 func extractIssueFromText(s string) string {
+	// 优先：开奖日期（2026-08-20 或 2026年08月20日）
+	if m := reDrawDate.FindStringSubmatch(s); m != nil {
+		return fmt.Sprintf("%s-%02s-%02s", m[1], m[2], m[3])
+	}
+	// 回退：期号
 	if m := reIssueA.FindStringSubmatch(s); m != nil {
 		return m[1]
 	}
@@ -427,13 +431,14 @@ func extractJSONObject(s string) map[string]interface{} {
 }
 
 var (
-	reIssueA = regexp.MustCompile(`第\s*([0-9]{6,8})\s*期`)       // 第2026093期
-	reIssueB = regexp.MustCompile(`期号[号:：]?\s*([0-9]{4,8})`) // 期号2024080
-	reType   = regexp.MustCompile(`(双色球|大乐透)`)
-	reBall   = regexp.MustCompile(`\b([0-9]{1,2})\b`)                       // 1~2 位数字（连续长数字串不会整体命中）
-	reBracket = regexp.MustCompile(`\[[^\]]*\]`)                            // 去掉 [1倍] 等括号内容
-	reMult    = regexp.MustCompile(`\d*倍`)                                 // 去掉 1倍/2倍（含前面的倍数数字）
-	reCircle  = regexp.MustCompile(`[⓪①②③④⑤⑥⑦⑧⑨⑩]`)                 // 去掉 ① ② … 投注序号
+	reIssueA  = regexp.MustCompile(`第\s*([0-9]{6,8})\s*期`)                    // 第2026093期
+	reIssueB  = regexp.MustCompile(`期号[号:：]?\s*([0-9]{4,8})`)              // 期号2024080
+	reDrawDate = regexp.MustCompile(`(20\d{2})[-/年](\d{1,2})[-/月](\d{1,2})`) // 2026-08-20 或 2026年08月20日
+	reType    = regexp.MustCompile(`(双色球|大乐透)`)
+	reBall    = regexp.MustCompile(`\b([0-9]{1,2})\b`)                         // 1~2 位数字（连续长数字串不会整体命中）
+	reBracket  = regexp.MustCompile(`\[[^\]]*\]`)                             // 去掉 [1倍] 等括号内容
+	reMult     = regexp.MustCompile(`\d*倍`)                                  // 去掉 1倍/2倍（含前面的倍数数字）
+	reCircle   = regexp.MustCompile(`[⓪①②③④⑤⑥⑦⑧⑨⑩]`)                  // 去掉 ① ② … 投注序号
 )
 
 // footerBoilerplate 需要剔除的页眉/页脚说明文字关键词（只放绝不会出现在投注行里的强标记）
@@ -551,9 +556,11 @@ func lineBalls(t string) (red, blue []string, ok bool) {
 func regexExtractAll(s string) ([]OCRResult, bool) {
 	clean := cleanForExtract(s)
 
-	// 期号（同一张票共用）
+	// 期号/开奖日期（同一张票共用），优先日期
 	issue := ""
-	if m := reIssueA.FindStringSubmatch(clean); m != nil {
+	if m := reDrawDate.FindStringSubmatch(clean); m != nil {
+		issue = fmt.Sprintf("%s-%02s-%02s", m[1], m[2], m[3])
+	} else if m := reIssueA.FindStringSubmatch(clean); m != nil {
 		issue = m[1]
 	} else if m := reIssueB.FindStringSubmatch(clean); m != nil {
 		issue = m[1]
@@ -580,9 +587,11 @@ func regexExtractAll(s string) ([]OCRResult, bool) {
 		} else if strings.Contains(ln, "红球") || strings.Contains(ln, "蓝球") {
 			lineType = TypeSSQ
 		}
-		// 逐行提取期号（不同行可能期号不同）
+		// 逐行提取期号/日期（不同行可能不同），优先日期
 		lineIssue := issue
-		if m := reIssueA.FindStringSubmatch(ln); m != nil {
+		if m := reDrawDate.FindStringSubmatch(ln); m != nil {
+			lineIssue = fmt.Sprintf("%s-%02s-%02s", m[1], m[2], m[3])
+		} else if m := reIssueA.FindStringSubmatch(ln); m != nil {
 			lineIssue = m[1]
 		} else if m := reIssueB.FindStringSubmatch(ln); m != nil {
 			lineIssue = m[1]
