@@ -150,7 +150,7 @@ onMounted(async () => {
         <div class="download-title">下载 APP 体验更多功能</div>
         <div class="download-desc">拍照识票、一键录入、中奖推送，体验更流畅</div>
       </div>
-      <a class="btn btn-primary download-btn" href="https://cdn.jsdelivr.net/gh/lovetwer/cpcx-android@release/cpcx.apk" target="_blank" rel="noopener">下载</a>
+      <a class="btn btn-primary download-btn" href="https://github.com/lovetwer/cpcx-android/releases/latest" target="_blank" rel="noopener">下载</a>
     </section>
 
     <p class="share-footer">由大奖来了生成</p>

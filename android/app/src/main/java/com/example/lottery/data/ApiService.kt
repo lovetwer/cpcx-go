@@ -54,7 +54,11 @@ interface ApiService {
     ): RecognizeResp
 
     @POST("/api/share")
-    suspend fun createShare(@Body body: Map<String, Any>): ShareResp
+    suspend fun createShare(@Body body: ShareReq): ShareResp
+
+    data class ShareReq(
+        val ids: List<Long>
+    )
 
     @GET("/api/share")
     suspend fun getShare(@Query("code") code: String): ListResp<Lottery>

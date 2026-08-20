@@ -89,7 +89,7 @@ object Api {
     /* ---------------- 分享 ---------------- */
 
     suspend fun createShare(ids: List<Long>): ShareResp =
-        run { svc.createShare(mapOf("ids" to ids)) }
+        run { svc.createShare(ApiService.ShareReq(ids)) }
 
     suspend fun getShare(code: String): List<Lottery> =
         run { svc.getShare(code).list ?: emptyList() }
