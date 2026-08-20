@@ -100,9 +100,14 @@ class UpdateManager(private val activity: AppCompatActivity) {
         val notes = json.optString("body", "")
         val htmlUrl = json.optString("html_url", "")
         if (tag.isBlank()) return null
-        // 下载 APK 走 jsDelivr CDN 加速（APK 放在 release 分支根目录）
-        // jsDelivr 国内有 CDN 节点，比直连 GitHub 快且稳定
-        val apkUrl = "https://cdn.jsdelivr.net/gh/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}@release/cpcx.apk"
+        // 优先从 Release assets 中获取 APK 下载链接（无缓存问题）
+        // 回退到 jsDelivr CDN（release 分支根目录的 cpcx.apk）
+        val apkUrl = json.optJSONArray("assets")?.let { assets ->
+            (0 until assets.length()).map { assets.getJSONObject(it) }
+                .firstOrNull { it.optString("name") == "cpcx.apk" }
+                ?.optString("browser_download_url")
+        }?.takeIf { it.isNotBlank() }
+            ?: "https://cdn.jsdelivr.net/gh/${LotteryApp.GITHUB_OWNER}/${LotteryApp.GITHUB_REPO}@release/cpcx.apk"
         return ReleaseInfo(tag, notes, apkUrl, htmlUrl)
     }
 
