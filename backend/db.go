@@ -91,7 +91,31 @@ CREATE TABLE IF NOT EXISTS shares (
 	if err := migrateLotteriesIndex(); err != nil {
 		return err
 	}
+	if err := migrateLotteriesIssue(); err != nil {
+		return err
+	}
 	return migrateDrawResults()
+}
+
+// migrateLotteriesIssue 把 lotteries.issue 里的"期号数字"格式统一转成"yyyy-mm-dd"日期格式，
+// 解决老数据/OCR未匹配到 draw_results 时存入期号导致排序错乱的问题。
+// 幂等：日期格式不受影响；无对应 draw_results 的期号保持原样（避免误改）。
+func migrateLotteriesIssue() error {
+	q := `
+UPDATE lotteries l
+JOIN draw_results d ON d.type = l.type AND d.issue = l.issue
+SET l.issue = d.draw_date
+WHERE l.issue NOT LIKE '____-__-__' AND d.draw_date != ''`
+	res, err := DB.Exec(q)
+	if err != nil {
+		logInfo("migrate: lotteries.issue 转换跳过: %v", err)
+		return nil
+	}
+	n, _ := res.RowsAffected()
+	if n > 0 {
+		logInfo("migrate: lotteries.issue 期号→日期转换 %d 行", n)
+	}
+	return nil
 }
 
 // migrateLotteriesIndex 为 lotteries 增加 (user_id, created_at) 联合索引，
