@@ -14,9 +14,10 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 		status = "db-error"
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"ok":    true,
-		"status": status,
-		"time":  time.Now().Format(time.RFC3339),
+		"ok":      true,
+		"status":  status,
+		"time":    time.Now().Format(time.RFC3339),
 		"service": "lottery-manager",
+		"version": "v1.3.9-sort-fix",
 	})
 }
