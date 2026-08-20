@@ -31,7 +31,11 @@ interface ApiService {
     suspend fun createLottery(@Body body: Map<String, Any>): BaseResp
 
     @POST("/api/lottery/batch")
-    suspend fun batchLottery(@Body body: Map<String, Any>): BatchResp
+    suspend fun batchLottery(@Body body: BatchLotteryReq): BatchResp
+
+    data class BatchLotteryReq(
+        val items: List<Map<String, String>>
+    )
 
     @DELETE("/api/lottery/{id}")
     suspend fun deleteLottery(@Path("id") id: Long): BaseResp

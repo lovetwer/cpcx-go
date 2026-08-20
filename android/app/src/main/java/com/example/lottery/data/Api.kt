@@ -64,7 +64,7 @@ object Api {
     suspend fun createLottery(body: Map<String, Any>): BaseResp = run { svc.createLottery(body) }
 
     suspend fun batchLottery(items: List<Map<String, String>>): BatchResp =
-        run { svc.batchLottery(mapOf("items" to items)) }
+        run { svc.batchLottery(ApiService.BatchLotteryReq(items)) }
 
     suspend fun deleteLottery(id: Long): BaseResp = run { svc.deleteLottery(id) }
 
