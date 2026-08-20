@@ -186,7 +186,8 @@ object Match {
 
     data class TicketMatch(
         val won: Boolean, val tier: String, val bestMr: Int, val bestMb: Int,
-        val bets: Int, val hitRed: List<String>, val hitBlue: List<String>, val matchText: String
+        val bets: Int, val hitRed: List<String>, val hitBlue: List<String>, val matchText: String,
+        val fyjHint: String = ""
     )
 
     fun matchTicket(type: String, red: String?, blue: String?, bankerRed: String?, bankerBlue: String?, drawRed: String?, drawBlue: String?, poolAmount: Long = 0): TicketMatch {
@@ -206,10 +207,16 @@ object Match {
             }
         }
         val hb = hitBalls(red, blue, drawRed, drawBlue)
+        // 福运奖提醒：双色球3红+0蓝且无奖池数据时，提示可能符合福运奖
+        var fyjHint = ""
+        if (type == "ssq" && bestMr == 3 && bestMb == 0 && best.isEmpty() && poolAmount == 0L) {
+            fyjHint = "可能符合福运奖条件（需本期奖池≥15亿，请查看福彩官网确认）"
+        }
         return TicketMatch(
             won = best.isNotEmpty(), tier = best, bestMr = bestMr, bestMb = bestMb,
             bets = bets, hitRed = hb.hitRed, hitBlue = hb.hitBlue,
-            matchText = "命中 ${bestMr}+${bestMb}"
+            matchText = "命中 ${bestMr}+${bestMb}",
+            fyjHint = fyjHint
         )
     }
 

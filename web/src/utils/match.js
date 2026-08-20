@@ -152,6 +152,11 @@ export function matchTicket(type, red, blue, bankerRed, bankerBlue, drawRed, dra
   const db = new Set(splitNums(drawBlue))
   const hitRed = splitNums(red).filter((x) => dr.has(x))
   const hitBlue = splitNums(blue).filter((x) => db.has(x))
+  // 福运奖提醒：双色球3红+0蓝且无奖池数据时，提示可能符合福运奖
+  let fyjHint = ''
+  if (type === 'ssq' && bestMr === 3 && bestMb === 0 && !best && poolAmount === 0) {
+    fyjHint = '可能符合福运奖条件（需本期奖池≥15亿，请查看福彩官网确认）'
+  }
   return {
     won: best !== '',
     tier: best,
@@ -161,6 +166,7 @@ export function matchTicket(type, red, blue, bankerRed, bankerBlue, drawRed, dra
     hitRed,
     hitBlue,
     matchText: `命中 ${bestMr}+${bestMb}`,
+    fyjHint,
   }
 }
 
